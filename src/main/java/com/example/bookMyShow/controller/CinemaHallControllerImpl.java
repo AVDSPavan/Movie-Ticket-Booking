@@ -5,8 +5,10 @@ import lombok.SneakyThrows;
 
 import java.util.ArrayList;
 import java.util.List;
+
 import org.springframework.util.ObjectUtils;
 import org.springframework.web.bind.annotation.RestController;
+
 import com.example.bookMyShow.entity.CinemaHall;
 import com.example.bookMyShow.entity.Seat;
 import com.example.bookMyShow.model.request.AddCinemaHallRequest;

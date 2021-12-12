@@ -12,7 +12,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
 import com.example.bookMyShow.entity.Booking;
-import com.example.bookMyShow.entity.PreBooking;
 import com.example.bookMyShow.model.request.AddBookingRequest;
 import com.example.bookMyShow.model.response.BookingResponse;
 import com.example.bookMyShow.model.response.InitialBookingResponse;

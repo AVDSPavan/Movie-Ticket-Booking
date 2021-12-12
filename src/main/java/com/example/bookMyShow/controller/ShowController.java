@@ -10,7 +10,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
-import com.example.bookMyShow.entity.Seat;
 import com.example.bookMyShow.entity.Show;
 import com.example.bookMyShow.model.request.AddShowRequest;
 import com.example.bookMyShow.model.response.SeatResponse;

@@ -4,30 +4,21 @@ import lombok.AllArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 
-import java.awt.print.Book;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.transaction.Transactional;
-
-import org.apache.commons.lang3.time.DateUtils;
 import org.springframework.util.ObjectUtils;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.example.bookMyShow.entity.Booking;
-import com.example.bookMyShow.entity.BookingStatus;
 import com.example.bookMyShow.entity.PreBooking;
 import com.example.bookMyShow.entity.Seat;
 import com.example.bookMyShow.entity.Show;
-import com.example.bookMyShow.exception.ServiceException;
 import com.example.bookMyShow.model.request.AddBookingRequest;
 import com.example.bookMyShow.model.response.BookingResponse;
 import com.example.bookMyShow.model.response.InitialBookingResponse;
-import com.example.bookMyShow.model.response.ShowResponse;
 import com.example.bookMyShow.repository.BookingRepository;
 import com.example.bookMyShow.repository.PreBookingRepository;
-import com.example.bookMyShow.repository.SeatRepository;
-import com.example.bookMyShow.repository.ShowRepository;
 import com.example.bookMyShow.service.BookingService;
 import com.example.bookMyShow.service.PreBookingService;
 import com.example.bookMyShow.service.SeatService;
