@@ -19,15 +19,17 @@ import com.example.bookMyShow.entity.Movie;
 import com.example.bookMyShow.entity.PreBooking;
 import com.example.bookMyShow.entity.Seat;
 import com.example.bookMyShow.entity.Show;
-import com.example.bookMyShow.exception.ServiceException;
 import com.example.bookMyShow.model.request.AddShowRequest;
+import com.example.bookMyShow.model.response.SeatResponse;
 import com.example.bookMyShow.model.response.ShowResponse;
 import com.example.bookMyShow.repository.BookingRepository;
-import com.example.bookMyShow.repository.CinemaHallRepository;
-import com.example.bookMyShow.repository.MovieRepository;
 import com.example.bookMyShow.repository.PreBookingRepository;
 import com.example.bookMyShow.repository.SeatRepository;
 import com.example.bookMyShow.repository.ShowRepository;
+import com.example.bookMyShow.service.CinemaHallService;
+import com.example.bookMyShow.service.MovieService;
+import com.example.bookMyShow.service.SeatService;
+import com.example.bookMyShow.service.ShowService;
 import com.example.bookMyShow.util.Utils;
 
 @Slf4j
@@ -35,12 +37,14 @@ import com.example.bookMyShow.util.Utils;
 @AllArgsConstructor
 public class ShowControllerImpl implements ShowController
 {
-	private final ShowRepository showRepository;
-	private final MovieRepository movieRepository;
-	private final CinemaHallRepository cinemaHallRepository;
-	private final BookingRepository bookingRepository;
 	private final PreBookingRepository preBookingRepository;
+	private final BookingRepository bookingRepository;
+	private final CinemaHallService cinemaHallService;
 	private final SeatRepository seatRepository;
+	private final ShowRepository showRepository;
+	private final ShowService showService;
+	private final SeatService seatService;
+	private final MovieService movieService;
 	private final Utils utils;
 
 	@Override
@@ -50,7 +54,7 @@ public class ShowControllerImpl implements ShowController
 		List<ShowResponse> showResponseList = new ArrayList<>();
 		for(Show show : showList)
 		{
-			showResponseList.add(mapToShowResponse(show));
+			showResponseList.add(showService.mapToShowResponse(show));
 		}
 		return showResponseList;
 	}
@@ -62,16 +66,16 @@ public class ShowControllerImpl implements ShowController
 		List<ShowResponse> showResponseList = new ArrayList<>();
 		for(Show show : showList)
 		{
-			showResponseList.add(mapToShowResponse(show));
+			showResponseList.add(showService.mapToShowResponse(show));
 		}
 		return showResponseList;
 	}
 
 	@Override
 	@SneakyThrows
-	public List<Seat> getAvailableSeats(String showId)
+	public List<SeatResponse> getAvailableSeats(String showId)
 	{
-		Show show = getShowByShowId(showId);
+		Show show = showService.getShowByShowId(showId);
 		List<Seat> seatList = seatRepository.findByCinemaHall(show.getCinemaHall());
 		List<Booking> bookingList = bookingRepository.findByShowAndBookingStatus(show, BookingStatus.CONFIRMED);
 		List<PreBooking> preBookingList = preBookingRepository.findByShow(show);
@@ -83,32 +87,28 @@ public class ShowControllerImpl implements ShowController
 			bookedSeats.add(preBooking.getSeat());
 		}
 		seatList.removeAll(bookedSeats);
-		return seatList;
-	}
-
-	@SneakyThrows
-	private Show getShowByShowId(String showId)
-	{
-		Show show = showRepository.findByShowId(showId);
-		if(ObjectUtils.isEmpty(show))
-		{
-			String message = String.format("No show found with id: %s", showId);
-			utils.throwServiceException(message);
+		List<SeatResponse> seatResponseList = new ArrayList<>();
+		for(Seat seat: seatList) {
+			seatResponseList.add(seatService.getSeatResponse(seat));
 		}
-		return show;
+		return seatResponseList;
 	}
 
 	@Override
 	@SneakyThrows
-	public List<Seat> getBookedSeats(String showId)
+	public List<SeatResponse> getBookedSeats(String showId)
 	{
-		Show show = getShowByShowId(showId);
+		Show show = showService.getShowByShowId(showId);
 		List<Booking> bookingList = bookingRepository.findByShowAndBookingStatus(show, BookingStatus.CONFIRMED);
 		List<Seat> bookedSeats = new ArrayList<>();
 		for(Booking booking: bookingList) {
 			bookedSeats.add(booking.getSeat());
 		}
-		return bookedSeats;
+		List<SeatResponse> seatResponseList = new ArrayList<>();
+		for(Seat seat : bookedSeats) {
+			seatResponseList.add(seatService.getSeatResponse(seat));
+		}
+		return seatResponseList;
 	}
 
 	@Override
@@ -121,7 +121,7 @@ public class ShowControllerImpl implements ShowController
 			String message = String.format("No show found with id: %s", showId);
 			utils.throwServiceException(message);
 		}
-		return mapToShowResponse(show);
+		return showService.mapToShowResponse(show);
 	}
 
 	@Override
@@ -130,8 +130,8 @@ public class ShowControllerImpl implements ShowController
 	{
 		String movieId = addShowRequest.getMovieId();
 		String cinemaHallId = addShowRequest.getCinemaHallId();
-		Movie movie = getMovieEntity(movieId);
-		CinemaHall cinemaHall = getCinemaHallEntity(cinemaHallId);
+		Movie movie = movieService.getMovieEntity(movieId);
+		CinemaHall cinemaHall = cinemaHallService.getCinemaHallEntity(cinemaHallId);
 
 		Date startTime = utils.getDateFromStr(addShowRequest.getStartTime());
 		Date endTime = DateUtils.addMinutes(startTime, movie.getDuration()+15);
@@ -149,60 +149,11 @@ public class ShowControllerImpl implements ShowController
 			}
 		}
 		if(slotExists) {
-			Show show = getShowEntity(movie, cinemaHall, startTime, endTime, date);
-			return mapToShowResponse(showRepository.save(show));
+			Show show = showService.getShowEntity(movie, cinemaHall, startTime, endTime, date);
+			return showService.mapToShowResponse(showRepository.save(show));
 		}
 		utils.throwServiceException("No slot found with given startTime and duration");
 		return null;
-	}
-
-	private ShowResponse mapToShowResponse(Show show)
-	{
-		return ShowResponse.builder().showId(show.getShowId())
-		                   .startTime(utils.getStrDate(show.getStartTime()))
-			               .endTime(utils.getStrDate(show.getEndTime()))
-			               .movieId(show.getMovie().getMovieId())
-			               .movieTitle(show.getMovie().getTitle())
-			               .cinemaHallId(show.getCinemaHall().getCinemaHallId())
-			               .cinemaHallName(show.getCinemaHall().getName())
-			               .createdAt(utils.getStrDate(show.getCreatedAt()))
-			               .updatedAt(utils.getStrDate(show.getUpdatedAt()))
-			               .build();
-	}
-
-	private CinemaHall getCinemaHallEntity(String cinemaHallId) throws ServiceException
-	{
-		CinemaHall cinemaHall = cinemaHallRepository.findByCinemaHallId(cinemaHallId);
-		if(ObjectUtils.isEmpty(cinemaHall))
-		{
-			String message = String.format("cinemaHall not found with id: %s", cinemaHallId);
-			utils.throwServiceException(message);
-		}
-		return cinemaHall;
-	}
-
-	private Movie getMovieEntity(String movieId) throws ServiceException
-	{
-		Movie movie = movieRepository.findByMovieId(movieId);
-		if(ObjectUtils.isEmpty(movie))
-		{
-			String message = String.format("movie not found with id: %s", movieId);
-			utils.throwServiceException(message);
-		}
-		return movie;
-	}
-
-	private Show getShowEntity(Movie movie, CinemaHall cinemaHall, Date startTime, Date endTime, Date date)
-	{
-		Show show = new Show();
-		show.setCinemaHall(cinemaHall);
-		show.setMovie(movie);
-		show.setStartTime(startTime);
-		show.setEndTime(endTime);
-		show.setDate(date);
-		show.setCreatedAt(utils.getCurrentDate());
-		show.setUpdatedAt(utils.getCurrentDate());
-		return show;
 	}
 
 	@Override

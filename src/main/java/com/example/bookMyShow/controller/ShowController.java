@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import com.example.bookMyShow.entity.Seat;
 import com.example.bookMyShow.entity.Show;
 import com.example.bookMyShow.model.request.AddShowRequest;
+import com.example.bookMyShow.model.response.SeatResponse;
 import com.example.bookMyShow.model.response.ShowResponse;
 
 @RequestMapping("/show")
@@ -25,10 +26,10 @@ public interface ShowController
 	List<ShowResponse> getShowsByMovieTitle(@RequestParam("movieTitle") String movieTitle);
 
 	@GetMapping(path = "/getAvailableSeats")
-	List<Seat> getAvailableSeats(@RequestParam("id") String showId);
+	List<SeatResponse> getAvailableSeats(@RequestParam("id") String showId);
 
 	@GetMapping(path = "/getBookedSeats")
-	List<Seat> getBookedSeats(@RequestParam("id") String showId);
+	List<SeatResponse> getBookedSeats(@RequestParam("id") String showId);
 
 	@GetMapping(path = "/get")
 	ShowResponse getShow(@RequestParam("id") String showId);
