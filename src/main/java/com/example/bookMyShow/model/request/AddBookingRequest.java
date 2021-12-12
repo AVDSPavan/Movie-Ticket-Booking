@@ -10,7 +10,7 @@ import javax.validation.constraints.NotBlank;
 @Setter
 public class AddBookingRequest
 {
-	@ApiModelProperty(example = "R1C3", required = true)
+	@ApiModelProperty(example = "4x242s53-04z1-3nq5-27al-zcq28e9t813g", required = true)
 	@NotBlank(message = "seatId cannot be null or blank")
 	private String seatId;
 

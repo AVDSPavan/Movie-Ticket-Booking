@@ -18,7 +18,6 @@ public class AddCinemaHallRequest
 	@NotBlank(message = "totalSeats cannot be null or blank")
 	private Integer totalSeats;
 
-	@ApiModelProperty(example = "[[1,1,1,1,1],[0,0,1,0,0],[1,1,1,1,1]]")
 	@NotBlank(message = "seatingLayout cannot be null or blank")
 	private String seatingLayout;
 }
